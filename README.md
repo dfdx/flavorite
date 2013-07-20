@@ -11,6 +11,18 @@ After you have cloned/downloaded sources, cd to project directory and run:
 
     python setup.py install
 
+Usage
+-----
+
+Assuming that `data` is iterator of tuples like `(user_id, item_id, rating)` and `item_id` is some id of the item (normally string or number):
+
+    import flavorite as flv
+	recom = flv.Recommender()
+	recom.build(data)
+	# or just load existing model:
+	# recom.load(model_file)
+	recom.find_closest(item_id, 10)
+	
 
 Example Using Combosaurus Data
 ------------------------------

@@ -9,33 +9,44 @@ from datetime import datetime
 from scipy import *
 
 
-def mult_scalar(mat1, mat2):
-    return mat1.dot(mat2.T)[0, 0]
+## cosine similarity
 
-def vlength(mat):
-    return sqrt(mult_scalar(mat, mat))
-    
-
-def cosine_similarity(item_1_mat, item_2_mat):
-    """Compute cosine similarity between matrices of 2 items
+def mult_scalar(v1, v2):
+    """Computes scalar multiplication of 2 vectors.
+       Vectors should be represented as 1xN matrices (row vectors).
     """
-    length = vlength(item_1_mat) * vlength(item_2_mat)
+    return v1.dot(v2.T)[0, 0]
+
+def vlength(v):
+    return sqrt(mult_scalar(v, v))
+    
+def cosine(v1, v2):
+    """Compute cosine between 2 vectors.
+       Vectors should be represented as 1xN matrices (row vectors). 
+    """
+    length = vlength(v1) * vlength(v2)
     if length != 0:
-        return mult_scalar(item_1_mat, item_2_mat) / length
+        return mult_scalar(v1, v2) / length
     else:
         return 0
 
-    
+
+# recommender
+        
 class Recommender(object):
     """Recommender engine based on cosine similarity
 
-       item_data  - dictionary of item_id->item_matrix, where item_matrix is
-       1xN matrix
+       items  - dictionary of item_id->item_vector, where item_vector is
+                1xN sparse matrix.
+
+       Though this class may be used as is, it can also work as a base class
+       for other recommenders. To do so, it is enough to override sim() method
+       to compute similarity between vectors of 2 items. 
     """
 
     def __init__(self):
         pass
-    
+
     def build(self, item_data, nusers=None, reporter=sys.stdout):
         """item_data - sequence of triples (user_id, item_id, rating)
            nusers    - number of users. If None, recommender will compute it,
@@ -74,46 +85,44 @@ class Recommender(object):
         for item_id, mat in items.iteritems():
             items[item_id] = sp.csr_matrix(items[item_id])
         self.items = items
-                
+        
+    def sim(self, v1, v2):
+        """Low-level method for computing similarity between vectors
+           of 2 items. Override *this* method if you want to intoduce
+           new recommendation algorithm. 
+        """
+        return cosine(v1, v2)
+        
+    def similarity(self, item1_id, item2_id):
+        """High-level method to find out similarity of 2 items.
+           It is intended to be used from outside the class,
+           to override recommendation algorithm check out sim() method.
+        """
+        v1, v2 = (self.items.get(item1_id), self.items.get(item2_id))
+        if v1 != None and v2 != None:
+            return self.sim(v1, v2)
+        else:
+            return None
             
-
     def find_closest(self, item_id, n):
         """Find n item ids closest to specified one or None if there's no
            such item_id
         """
-        print 'trying to find item closest to %s' % item_id
-        this_mat = self.items.get(item_id, None)        
+        this_mat = self.items.get(item_id)
         if this_mat == None:
             return None
         def sim_with_item(cur_item):
-            return cosine_similarity(this_mat, cur_item[1])
+            return cosine(this_mat, cur_item[1])
         item_gen = self.items.iteritems()
-        closest_pairs =  hq.nlargest(n, item_gen, key=sim_with_item)
-        return [item_id for item_id, mat in closest_pairs]
+        closest_pairs =  hq.nlargest(n + 1, item_gen, key=sim_with_item)
+        return [item_id for item_id, mat in closest_pairs][1:]
     
-        
-def demo():
-    import parser
-    data = parser.load_data('dump_ratings_small.tsv')
-    item_data = data['item_data']
-    recom = Recommender()
-    recom.build(item_data)
-    return recom.find_closest('doctor-who', 10)
+    def save(self, filename):
+        with open(filename, 'w') as f:
+            pickle.dump(self.items, f)
 
+    def load(self, filename):
+        with open(filename) as f:
+            self.items = pickle.load(f)
 
-def build_and_save(filename):
-    import parser
-    print '[', datetime.now(), '] loading data...'
-    data = parser.load_data('../data/dump_ratings.tsv')
-    print '[', datetime.now(), '] forcing item data to be loaded...'
-    item_data = list(data['item_data'])
-    print '[', datetime.now(), '] building recommender...'
-    recommender = Recommender()    
-    recommender.build(item_data)
-    with open(filename, 'w') as f:
-        pickle.dump(recommender, f)
-    print 'Done.'
-
-
-# if __name__ == '__main__':
-#    build_and_save('recommender.pkl')
+            
