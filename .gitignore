@@ -33,3 +33,11 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# Editors
+*~
+
+# Data
+*.tsv
+data/
+*.pkl
