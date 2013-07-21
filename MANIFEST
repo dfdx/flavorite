@@ -2,4 +2,5 @@
 README
 setup.py
 flavorite/__init__.py
-flavorite/parser.py
+flavorite/combosaurus.py
+flavorite/demo.py

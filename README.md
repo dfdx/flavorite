@@ -7,8 +7,13 @@ Favorite is simple (but still powerfull!) recommendation engine based on cosine 
 Installation
 ------------
 
-After you have cloned/downloaded sources, cd to project directory and run: 
+Install binary using pip:
 
+    pip install flavorite
+
+or build it from source: 
+
+    git clone https://github.com/faithlessfriend/flavorite
     python setup.py install
 
 Usage
@@ -22,12 +27,22 @@ Assuming that `data` is iterator of tuples like `(user_id, item_id, rating)` and
 	# or just load existing model:
 	# recom.load(model_file)
 	recom.find_closest(item_id, 10)
-	
+
+
 
 Example Using Combosaurus Data
 ------------------------------
 
-First of all, download [Combosaurus data](http://combosaurus.com/about/data). 
+TODO: Upload recommender model somewhere
+TODO: Merge Usage and Example sections
+
+The easiest way to try out recommender with Combosaurus data is to download [precomputed recommender model](http://todo) and just load it into `Recommender` instanse: 
+
+    import flv
+    recom = flv.Recommender()
+	recom.load(model_file)
+
+[Combosaurus data](http://combosaurus.com/about/data)
 
 ...to be continued...
 
